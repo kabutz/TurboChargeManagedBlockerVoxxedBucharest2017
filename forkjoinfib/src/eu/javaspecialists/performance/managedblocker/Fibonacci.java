@@ -50,14 +50,41 @@ public class Fibonacci {
         } else if (result == RESERVED) {
             try {
                 synchronized (RESERVED) {
-                    while((result = cache.get(n)) == RESERVED) {
-                        RESERVED.wait();
-                    }
+                    long time = System.currentTimeMillis();
+                    ReservedBlocker blocker = new ReservedBlocker(n, cache);
+                    ForkJoinPool.managedBlock(blocker);
+                    result = blocker.result;
+                    time = System.currentTimeMillis() - time;
+                    if (time > 50) System.out.println("Waited for " + time + "ms");
                 }
             } catch (InterruptedException e) {
                 throw new CancellationException("interrupted");
             }
         }
         return result;
+    }
+
+    private class ReservedBlocker implements ForkJoinPool.ManagedBlocker {
+        private volatile BigInteger result;
+        private final int n;
+        private final Map<Integer, BigInteger> cache;
+
+        public ReservedBlocker(int n, Map<Integer, BigInteger> cache) {
+            this.n = n;
+            this.cache = cache;
+        }
+
+        public boolean isReleasable() {
+            return (result = cache.get(n)) != RESERVED;
+        }
+
+        public boolean block() throws InterruptedException {
+            synchronized (RESERVED) {
+                while(!isReleasable()) {
+                    RESERVED.wait();
+                }
+            }
+            return true;
+        }
     }
 }
