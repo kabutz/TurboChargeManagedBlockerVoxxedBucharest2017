@@ -1,1 +1,0 @@
-# TurboChargeManagedBlockerVoxxedBucharest2017
