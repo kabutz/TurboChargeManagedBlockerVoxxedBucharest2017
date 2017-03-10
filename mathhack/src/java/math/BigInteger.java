@@ -27,7 +27,7 @@
  * Portions Copyright (c) 1995  Colin Plumb.  All rights reserved.
  */
 
-package eu.javaspecialists.performance.math;
+package java.math;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
